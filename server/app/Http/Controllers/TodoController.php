@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Http\Requests\TodoStoreRequest;
 use App\Models\Todo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,17 +20,13 @@ class TodoController extends Controller
 
 
     // store the todo view in database
-    public function store(Request $request)
+    public function store(TodoStoreRequest $request)
     {
-        $request->validate([
-            'name' => ['required'],
-            'description' => ['required']
-        ]);
+        $validate =  $request->validated();
 
-        $data = $request->all();
         $todo = new Todo();
-        $todo->name = $data['name'];
-        $todo->description = $data['description'];
+        $todo->name = $validate['name'];
+        $todo->description = $validate['description'];
 
         //associate with each user
         $todo->user()->associate(Auth::user());
@@ -55,13 +51,10 @@ class TodoController extends Controller
 
 
     //update todo on database
-    public function update(Request $request, $id)
+    public function update(TodoStoreRequest $request, $id)
     {
-        $request->validate([
-            'name' => ['required'],
-            'description' => ['required']
-        ]);
-        $todo = Todo::where('id', $id)->update($request->all());
+        $validate =  $request->validated();
+        $todo = Todo::where('id', $id)->update($validate);
 
 
         return response()->json([

@@ -1,47 +1,49 @@
 <script setup>
-import { ref } from "vue";
-import axios from "axios";
-import router from "../../router/index";
+import { ref, computed, onBeforeMount } from "vue";
+import { useStore } from "vuex";
+import router from "../../router";
+
+const store = useStore();
 const name = ref("");
 const description = ref("");
-const errorName = ref("");
-const errorDescription = ref("");
 
-function onCreateTodo(e) {
+const errorName = computed(() => {
+  return store.state.todo.todoNameError.length > 0
+    ? store.state.todo.todoNameError
+    : "";
+});
+
+const errorDescription = computed(() => {
+  return store.state.todo.todoDescriptionError.length > 0
+    ? store.state.todo.todoDescriptionError
+    : "";
+});
+
+
+
+async function onCreateTodo(e) {
   e.preventDefault();
-  axios
-    .post(
-      "http://127.0.0.1:8000/api/store-data",
-      {
-        name: name.value,
-        description: description.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    )
-    .then((response) => {
-      //todos.value = response.data.todo;
-      console.log(response.data.Sucess);
-      router.push("/");
-    })
-    .catch((err) => {
-      console.log("ashgdjs");
-      console.log(err);
-      if (!(err.response.data.errors.description === undefined)) {
-        errorDescription.value = err.response.data.errors.description[0];
-      }
-      if (!(err.response.data.errors.name === undefined)) {
-        errorName.value = err.response.data.errors.name[0];
-      }
+
+  await store.dispatch("todo/createTodo", {
+    name: name.value,
+    description: description.value,
+  });
+
+  if (
+    store.getters["todo/todoErrors"][0] === "" &&
+    store.getters["todo/todoErrors"][1] === ""
+  ) {
+    store.commit("todo/setSuccess",{
+      todoSuccess: "Todo Created Successfully"
     });
+    router.push("/");
+  }
 }
 </script>
 
 <template>
   <div class="container">
+   
     <form action="store-data" method="post" class="mt-4 p-4">
       <div class="form-group m-3">
         <label for="name">Todo Name</label>

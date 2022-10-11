@@ -1,39 +1,9 @@
-<script setup>
-import { RouterLink } from "vue-router";
-import { onMounted, ref } from "vue";
-import axios from "axios";
 
-const toggleNav = ref(true);
-
-onMounted(() => {
-  console.log(toggleNav.value);
-  if (!localStorage.getItem("token")) {
-    toggleNav.value = true;
-  }
-  else toggleNav.value = false;
-});
-
-function handleLogout(e) {
-  console.log("asdgas");
-  axios
-    .get("http://127.0.0.1:8000/api/logout", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-    .then((response) => {
-      window.location.reload();
-      localStorage.clear();
-      toggleNav.value=false;
-      console.log(response);
-    });
-}
-</script>
 
 <template>
   <nav class="navbar navbar-expand-lg navbar-light navbar-laravel">
     <div class="container">
-      <a class="navbar-brand" href="#">Vue</a>
+      <a class="navbar-brand" href="#">TODO</a>
       <button
         class="navbar-toggler"
         type="button"
@@ -46,7 +16,7 @@ function handleLogout(e) {
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ml-auto" v-if="toggleNav">
+        <ul class="navbar-nav ml-auto"  v-if="toggleNav">
           <li class="nav-item">
             <router-link class="nav-link" to="Register"> Register </router-link>
           </li>
@@ -72,3 +42,31 @@ function handleLogout(e) {
     </div>
   </nav>
 </template>
+<script setup>
+  import { RouterLink } from "vue-router";
+  import { onMounted, ref } from "vue";
+  import axios from "axios";
+  
+  const toggleNav = ref(true);
+  
+  onMounted(() => {
+    if (!localStorage.getItem("token")) {
+      toggleNav.value = true;
+    } else toggleNav.value = false;
+  });
+  
+  function handleLogout(e) {
+    
+    axios
+      .get("http://127.0.0.1:8000/api/logout", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((response) => {
+        window.location.reload();
+        localStorage.clear();
+        toggleNav.value = false;
+      });
+  }
+  </script>                                                                       

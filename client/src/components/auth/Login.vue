@@ -1,43 +1,3 @@
-<script setup>
-import axios from "axios";
-import { ref } from "vue";
-
-const email = ref("");
-const password = ref("");
-const authError = ref("");
-const errorEmail = ref("");
-const errorPassword = ref("");
-
-function handleSubmit(e) {
-  e.preventDefault();
-  errorEmail.value = "";
-  errorPassword.value = "";
-  authError.value = "";
-  axios
-    .post("http://127.0.0.1:8000/api/login/post", {
-      email: email.value,
-      password: password.value,
-    })
-    .then((response) => {
-      console.log(response);
-      localStorage.setItem("token", response.data[0].token); // to store the token
-      window.location.reload();
-    })
-    .catch((err) => {
-      console.log(err.response.data);
-      if (!(err.response.data.error === undefined)) {
-        authError.value = err.response.data.error;
-      }
-      if (!(err.response.data.errors.email === undefined)) {
-        errorEmail.value = err.response.data.errors.email[0];
-      }
-      if (!(err.response.data.errors.password === undefined)) {
-        errorPassword.value = err.response.data.errors.password[0];
-      }
-    });
-}
-</script>
-
 <template>
   <main class="login-form">
     <div class="cotainer">
@@ -51,7 +11,7 @@ function handleSubmit(e) {
                   <label
                     for="email_address"
                     class="col-md-4 col-form-label text-md-right"
-                    >E-Mail Address</label
+                    >Email Address</label
                   >
                   <div class="col-md-6">
                     <input
@@ -63,8 +23,8 @@ function handleSubmit(e) {
                       v-model="email"
                       autofocus
                     />
-                    <span class="text-danger" v-if="errorEmail">{{
-                      errorEmail
+                    <span class="text-danger" v-if="getEmailError">{{
+                      getEmailError
                     }}</span>
                   </div>
                 </div>
@@ -84,11 +44,11 @@ function handleSubmit(e) {
                       v-model="password"
                       required
                     />
-                    <span class="text-danger" v-if="errorPassword">{{
-                      errorPassword
+                    <span class="text-danger" v-if="getPasswordError">{{
+                      getPasswordError
                     }}</span>
-                    <span class="text-danger" v-if="authError">{{
-                      authError
+                    <span class="text-danger" v-if="getAuthError">{{
+                      getAuthError
                     }}</span>
                   </div>
                 </div>
@@ -120,3 +80,47 @@ function handleSubmit(e) {
     </div>
   </main>
 </template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { useStore } from "vuex";
+
+const store = useStore();
+const email = ref("");
+const password = ref("");
+
+const getAuthError = computed(() => {
+  return store.state.auth.authError.length > 0
+    ? store.state.auth.authError
+    : "";
+});
+const getEmailError = computed(() => {
+  return store.state.auth.emailError.length > 0
+    ? store.state.auth.emailError
+    : "";
+});
+const getPasswordError = computed(() => {
+  return store.state.auth.passwordError.length > 0
+    ? store.state.auth.passwordError
+    : "";
+});
+
+function handleSubmit(e) {
+  e.preventDefault();
+
+  store.commit("auth/setAuthError", {
+    authError: "",
+  });
+  store.commit("auth/setEmailError", {
+    emailError: "",
+  });
+  store.commit("auth/setPasswordError", {
+    passwordError: "",
+  });
+  store.dispatch("auth/login", {
+    email: email.value,
+    password: password.value,
+  });
+  
+}
+</script>

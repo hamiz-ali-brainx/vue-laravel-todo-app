@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Jobs\SendEmailJob;
 use App\Models\UserVerify;
 use App\Models\User;
 
@@ -33,18 +33,21 @@ class IsVerifyEmail
             $response = [
                 'error' => $message,
             ];
+           // ddd(!is_null($user->email_verified_at));
             return response()->json($response, 401);
-        } else if (!($user->is_email_verified)) {
-
+        } else if(is_null($user->email_verified_at)) {
+          
             $token = Str::random(64);
             UserVerify::create([
                 'user_id' => $user->id,
                 'token' => $token
             ]);
-            Mail::send('auth.verification', ['token' => $token], function ($mail) use ($user) {
-                $mail->to($user->email);
-                $mail->subject('Account Verification');
-            });
+            $details = [
+                'email' => $user->email,
+                'token' => $token,
+                'name'=>$user->name
+            ];
+            dispatch(new SendEmailJob($details));
 
             $message = "Your Email is not verified! Check your inbox";
             $response = [

@@ -3,21 +3,23 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NotifyInactiveUser extends Notification
+class TodoCreated extends Notification implements ShouldQueue
 {
     use Queueable;
-
+    private $message;
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($message)
     {
         //
+        $this->message = $message;
     }
 
     /**
@@ -40,9 +42,9 @@ class NotifyInactiveUser extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Go to Website', url('http://localhost:5173/login'))
-                    ->line('Thank you for using our application!');
+            ->line($this->message)
+            ->action('Go to Website', url('http://localhost:5173/login'))
+            ->line('Add a new Todo Yourself');
     }
 
     /**

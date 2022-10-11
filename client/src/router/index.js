@@ -5,9 +5,9 @@ import TodoList from "../components/todo/TodoList.vue";
 import TodoCreate from "../components/todo/TodoCreate.vue";
 import TodoDetails from "../components/todo/TodoDetails.vue";
 import TodoEdit from "../components/todo/TodoEdit.vue"
+import { useStore } from "vuex";
 
-
-
+const store = useStore();
 const guest = (to, from, next) => {
   if (!localStorage.getItem("token")) {
     return next();
@@ -46,7 +46,6 @@ const routes = [
     path: "/createtodo",
     name: "CreateTodo",
     beforeEnter: auth,
-    
     component: TodoCreate,
   },
 

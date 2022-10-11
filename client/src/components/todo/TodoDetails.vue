@@ -1,56 +1,35 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-import router from "../../router/index"
+import { computed, onMounted } from "vue";
+import { useStore } from "vuex";
+import router from "../../router";
+
+const store = useStore();
 const props = defineProps(["id"]);
 
-const name = ref("");
-const description = ref("");
+const getTodo = computed(() => {
+  return store.state.todo.todos.filter((todo) => todo.id == props.id);
+});
 
-function deleteTodo(e) {
+async function deleteTodo(e){
   e.preventDefault();
-  axios
-    .get(`http://127.0.0.1:8000/api/delete/${props.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-    .then((response) => {
-      console.log(response);
-      router.push("/");
-
-      
-  //    name.value = response.data.todo[0].name;
-      //description.value = response.data.todo[0].description;
-      //todos.value = response.data.todo;
-      //console.log(todos.value);
+  await store.dispatch("todo/deleteTodo", {
+    id: props.id
+  });
+  router.push("/");
+  store.commit("todo/setSuccess",{
+      todoSuccess: "Todo Deleted Successfully"
     });
 }
-onMounted(() => {
-  axios
-    .get(`http://127.0.0.1:8000/api/details/${props.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-    .then((response) => {
-      console.log(response.data.todo);
-      name.value = response.data.todo[0].name;
-      description.value = response.data.todo[0].description;
-      //todos.value = response.data.todo;
-      //console.log(todos.value);
-    });
-});
-</script>
 
+</script>
 <template>
   <div class="card text-center mt-5">
     <div class="card-header">
       <b>TODO DETAILS</b>
     </div>
     <div class="card-body">
-      <h5 class="card-title">{{ name }}</h5>
-      <p class="card-text">{{ description }}</p>
+      <h5 class="card-title">{{ getTodo[0].name }}</h5>
+      <p class="card-text">{{ getTodo[0].description }}</p>
       <router-link
         style="text-decoration: none; color: black"
         :to="{

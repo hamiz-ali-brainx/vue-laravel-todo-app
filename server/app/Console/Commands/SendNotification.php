@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Carbon\Carbon;
 use App\Models\Todo;
 use App\Models\User;
+use App\Notifications\TodoCreated;
 
 class SendNotification extends Command
 {
@@ -33,6 +34,9 @@ class SendNotification extends Command
    */
   public function handle()
   {
+
+  
+    
     $inactive_user = Todo::distinct()->where('created_at', '<', Carbon::now()->subMinutes(4))->get('user_id');
     foreach ($inactive_user as $todo) {
       echo $todo->user_id;

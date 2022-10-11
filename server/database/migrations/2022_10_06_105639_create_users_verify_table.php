@@ -16,13 +16,11 @@ return new class extends Migration
         Schema::create('users_verify', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->timestamps();
             $table->string('token');
+            $table->timestamps();
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_email_verified')->default(0);
-        });
+        
     }
 
     /**

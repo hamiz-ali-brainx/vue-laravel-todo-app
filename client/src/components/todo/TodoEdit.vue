@@ -1,54 +1,52 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
+import { onMounted, computed, ref } from "vue";
+import { useStore } from "vuex";
 import router from "../../router/index";
+
+const store = useStore();
 const props = defineProps(["id"]);
+
 const name = ref("");
 const description = ref("");
-const errorName = ref("");
-const errorDescription = ref("");
 
-function editTodo(e) {
+const getTodo = computed(() => {
+  return store.state.todo.todos.filter((todo) => todo.id == props.id);
+});
+
+const errorName = computed(() => {
+  return store.state.todo.todoNameError.length > 0
+    ? store.state.todo.todoNameError
+    : "";
+});
+
+const errorDescription = computed(() => {
+  return store.state.todo.todoDescriptionError.length > 0
+    ? store.state.todo.todoDescriptionError
+    : "";
+});
+
+async function editTodo(e) {
   e.preventDefault();
-  axios
-    .post(
-      `http://127.0.0.1:8000/api/update/${props.id}`,
-      {
-        name: name.value,
-        description: description.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    )
-    .then((response) => {
-      console.log(response);
-      router.push("/");
-    })
-    .catch((err) => {
-      if (!(err.response.data.errors.description === undefined)) {
-        errorDescription.value = err.response.data.errors.description[0];
-      }
-      if (!(err.response.data.errors.name === undefined)) {
-        errorName.value = err.response.data.errors.name[0];
-      }
+  await store.dispatch("todo/updateTodo", {
+    id: props.id,
+    name: name.value,
+    description: description.value,
+  });
+
+  if (
+    store.getters["todo/todoErrors"][0] === "" &&
+    store.getters["todo/todoErrors"][1] === ""
+  ) {
+    store.commit("todo/setSuccess",{
+      todoSuccess: "Todo Edited Successfully"
     });
+    router.push("/");
+  }
 }
 
 onMounted(() => {
-  axios
-    .get(`http://127.0.0.1:8000/api/details/${props.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-    .then((response) => {
-      //console.log(response);
-      name.value = response.data.todo[0].name;
-      description.value = response.data.todo[0].description;
-    });
+  name.value = getTodo.value[0].name;
+  description.value = getTodo.value[0].description;
 });
 </script>
 

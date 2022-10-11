@@ -1,46 +1,9 @@
-<script setup>
-import axios from "axios";
-import { ref } from "vue";
-
-const email = ref("");
-const password = ref("");
-const name = ref("");
-const errorEmail = ref("");
-const errorPassword = ref("");
-const success = ref("");
-
-function handleSubmit(e) {
-  e.preventDefault();
-  errorEmail.value = "";
-  errorPassword.value = "";
-  axios
-    .post("http://127.0.0.1:8000/api/post-registration", {
-      email: email.value,
-      password: password.value,
-      name: name.value,
-    })
-    .then((response) => {
-       //   window.location.reload();
-      success.value = response.data.message;
-    })
-    .catch((err) => {
-      console.log(err.response.data);
-      if (!(err.response.data.errors.email === undefined)) {
-        errorEmail.value = err.response.data.errors.email[0];
-      }
-      if (!(err.response.data.errors.password === undefined)) {
-        errorPassword.value = err.response.data.errors.password[0];
-      }
-    });
-}
-</script>
-
 <template>
   <main class="login-form">
     <div class="cotainer">
       <div class="row justify-content-center">
-        <span class="alert-success alert" v-if="success">
-                      {{ success }}
+        <span class="alert-success alert" v-if="getSuccess">
+          {{ getSuccess }}
         </span>
         <div class="col-md-8">
           <div class="card">
@@ -63,6 +26,9 @@ function handleSubmit(e) {
                       v-model="name"
                       autofocus
                     />
+                    <span class="text-danger" v-if="getNameError">
+                      {{ getNameError }}
+                    </span>
                   </div>
                 </div>
 
@@ -82,8 +48,8 @@ function handleSubmit(e) {
                       required
                       autofocus
                     />
-                    <span class="text-danger" v-if="errorEmail">
-                      {{ errorEmail }}
+                    <span class="text-danger" v-if="getEmailError">
+                      {{ getEmailError }}
                     </span>
                   </div>
                 </div>
@@ -103,8 +69,8 @@ function handleSubmit(e) {
                       v-model="password"
                       required
                     />
-                    <span class="text-danger" v-if="errorPassword">
-                      {{ errorPassword }}
+                    <span class="text-danger" v-if="getPasswordError">
+                      {{ getPasswordError }}
                     </span>
                   </div>
                 </div>
@@ -134,3 +100,60 @@ function handleSubmit(e) {
     </div>
   </main>
 </template>
+<script setup>
+import { ref , computed} from "vue";
+import { useStore } from "vuex";
+
+
+const store = useStore();
+const email = ref("");
+const password = ref("");
+const name = ref("");
+
+
+const getEmailError = computed(() => {
+  return store.state.auth.emailError.length > 0
+    ? store.state.auth.emailError
+    : "";
+});
+const getPasswordError = computed(() => {
+  return store.state.auth.passwordError.length > 0
+    ? store.state.auth.passwordError
+    : "";
+});
+
+const getNameError = computed(() => {
+  return store.state.auth.nameError.length > 0
+    ? store.state.auth.nameError
+    : "";
+});
+
+const getSuccess = computed(() => {
+  return store.state.auth.successMessage.length > 0
+    ? store.state.auth.successMessage
+    : "";
+});
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  store.commit("auth/setAuthError", {
+    authError: "",
+  });
+  store.commit("auth/setEmailError", {
+    emailError: "",
+  });
+  store.commit("auth/setPasswordError", {
+    passwordError: "",
+  });
+  store.commit("auth/setNameError", {
+    nameError: "",
+  });
+  
+  await store.dispatch("auth/register", {
+    email: email.value,
+    password: password.value,
+    name: name.value,
+  });
+  
+}
+</script>
